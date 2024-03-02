@@ -41,3 +41,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+*.lock
+assets/data/stop_times_1.csv
+assets/data/stop_times_2.csv
+assets/data/stop_times_3.csv
+assets/data/stop_times_4.csv
+assets/data/stop_times_5.csv
+assets/data/stops.csv
+assets/data/trips.csv
+assets/data/routes.csv

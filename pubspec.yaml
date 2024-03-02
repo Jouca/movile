@@ -36,6 +36,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   geolocator: ^11.0.0
+  http: ^1.2.1
+  csv: ^6.0.0
+  path_provider: ^2.1.2
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -63,6 +67,76 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/data/stop_times_1.csv
+    - assets/data/stop_times_2.csv
+    - assets/data/stop_times_3.csv
+    - assets/data/stop_times_4.csv
+    - assets/data/stop_times_5.csv
+    - assets/data/stops.csv
+    - assets/data/trips.csv
+    - assets/data/routes.csv
+    - assets/images/transport_modes/symbole_bus_fc_RVB.png
+    - assets/images/transport_modes/symbole_metro_fc_RVB.png
+    - assets/images/transport_modes/symbole_RER_fc_RVB.png
+    - assets/images/transport_modes/symbole_train_fc_RVB.png
+    - assets/images/transport_modes/symbole_tram_fc_RVB.png
+
+    # Trams
+    - assets/images/lines/tram_T1_fc_RVB.png
+    - assets/images/lines/tram_T2_fc_RVB.png
+    - assets/images/lines/tram_T3a_fc_RVB.png
+    - assets/images/lines/tram_T3b_fc_RVB.png
+    - assets/images/lines/tram_T4_fc_RVB.png
+    - assets/images/lines/tram_T5_fc_RVB.png
+    - assets/images/lines/tram_T6_fc_RVB.png
+    - assets/images/lines/tram_T7_fc_RVB.png
+    - assets/images/lines/tram_T8_fc_RVB.png
+    - assets/images/lines/tram_T9_fc_RVB.png
+    - assets/images/lines/tram_T10_fc_RVB.png
+    - assets/images/lines/tram_T11_fc_RVB.png
+    - assets/images/lines/tram_T12_fc_RVB.png
+    - assets/images/lines/tram_T13_fc_RVB.png
+
+    # Metros
+    - assets/images/lines/metro_1_fc_RVB.png
+    - assets/images/lines/metro_2_fc_RVB.png
+    - assets/images/lines/metro_3_fc_RVB.png
+    - assets/images/lines/metro_3bis_fc_RVB.png
+    - assets/images/lines/metro_4_fc_RVB.png
+    - assets/images/lines/metro_5_fc_RVB.png
+    - assets/images/lines/metro_6_fc_RVB.png
+    - assets/images/lines/metro_7_fc_RVB.png
+    - assets/images/lines/metro_7bis_fc_RVB.png
+    - assets/images/lines/metro_8_fc_RVB.png
+    - assets/images/lines/metro_9_fc_RVB.png
+    - assets/images/lines/metro_10_fc_RVB.png
+    - assets/images/lines/metro_11_fc_RVB.png
+    - assets/images/lines/metro_12_fc_RVB.png
+    - assets/images/lines/metro_13_fc_RVB.png
+    - assets/images/lines/metro_14_fc_RVB.png
+    - assets/images/lines/metro_15_fc_RVB.png
+    - assets/images/lines/metro_16_fc_RVB.png
+    - assets/images/lines/metro_17_fc_RVB.png
+    - assets/images/lines/metro_18_fc_RVB.png
+
+    # RERs
+    - assets/images/lines/RER_A_fc_RVB.png
+    - assets/images/lines/RER_B_fc_RVB.png
+    - assets/images/lines/RER_C_fc_RVB.png
+    - assets/images/lines/RER_D_fc_RVB.png
+    - assets/images/lines/RER_E_fc_RVB.png
+
+    # Transiliens
+    - assets/images/lines/train_H_fc_RVB.png
+    - assets/images/lines/train_J_fc_RVB.png
+    - assets/images/lines/train_K_fc_RVB.png
+    - assets/images/lines/train_L_fc_RVB.png
+    - assets/images/lines/train_N_fc_RVB.png
+    - assets/images/lines/train_P_fc_RVB.png
+    - assets/images/lines/train_R_fc_RVB.png
+    - assets/images/lines/train_U_fc_RVB.png
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -89,3 +163,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  fonts:
+    - family: Parisine
+      fonts:
+        - asset: assets/fonts/Parisine_Italic.otf
+          style: italic
+        - asset: assets/fonts/Parisine_Bold.otf
+        - asset: assets/fonts/Parisine_Regular.otf

@@ -320,8 +320,9 @@ class Line {
         route_short_name!,
         textAlign: TextAlign.center,
         minFontSize: 10 * scale,
-        maxFontSize: 20 * scale,
+        maxFontSize: 40 * scale,
         style: TextStyle(
+          fontFamily: "Parisine",
           fontWeight: FontWeight.bold,
           color: "#$text_color".toColor()
         )

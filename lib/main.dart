@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'IDFMData/lines.dart';
 import 'IDFMData/trips.dart';
+import 'IDFMData/traces.dart';
+import 'IDFMData/stopTimes.dart';
+import 'IDFMData/stops.dart';
 import 'IDFMData/api.dart';
 import 'pageStation.dart';
 import 'package:flutter/services.dart';
@@ -26,20 +29,26 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   final navigatorKey = GlobalKey<NavigatorState>();
 
-  static var stop_times = [];
   static var lines = [];
   static var trips = [];
   static var stops = [];
+  static var traces = [];
+
+  static List<StopTime> stop_times_data = [];
+  static List<Stop> stops_data = [];
 
   var progressText = "Chargement des données...";
 
   static Line selectedLine = Line();
   static List<Trip> selectedTrip = [];
+  static Trace selectedTrace = Trace();
+  static List<Map<String, List<StopTime>>> selectedStopTimes = [];
+  static List<Map<String, List<Stop>>> selectedStops = [];
 
-  get getStopTimes => stop_times;
   get getLines => lines;
   get getTrips => trips;
   get getStops => stops;
+  get getTraces => traces;
 
   TextEditingController editingController = TextEditingController();
 
@@ -70,65 +79,126 @@ class MyAppState extends State<MyApp> {
     ),
   ];
 
-  static final API _api = const API();
-  static final Lines _linesData = Lines();
-  static final Trips _tripsData = Trips();
+  static API api = API();
+  static Lines linesData = Lines();
+  static Trips tripsData = Trips();
+  static Traces tracesData = Traces();
+  static StopTimes stopTimesData = StopTimes();
+  static Stops stopsData = Stops();
 
   void getDatas(BuildContext context) async {
-    await _api.getLines(this).then((value) {
+    await api.getLines(this).then((value) {
       setState(() {
         lines = value;
       });
     });
-
     setState(() {
       setProgressText("Traitement des lignes...");
     });
-    _linesData.parseLines(lines);
-    List<Line> lines_data = _linesData.getLines();
+    linesData.parseLines(lines);
+    List<Line> lines_data = linesData.getLines();
 
-    await _api.getRoutes(this).then((value) {
+    await api.getTraces(this).then((value) {
+      setState(() {
+        traces = value;
+      });
+    });
+    setState(() {
+      setProgressText("Traitement des tracés...");
+    });
+    tracesData.parseTraces(traces);
+    List<Trace> traces_data = tracesData.getTraces();
+
+    await api.getRoutes(this).then((value) {
       setState(() {
         trips = value;
       });
     });
-
     setState(() {
       setProgressText("Traitement des routes...");
     });
-    _tripsData.parseTrips(trips);
-    List<Trip> trips_data = _tripsData.getTrips();
+    tripsData.parseTrips(trips);
+    List<Trip> trips_data = tripsData.getTrips();
+
+    await api.getStops(this).then((value) {
+      setState(() {
+        stops = value;
+      });
+    });
+    setState(() {
+      setProgressText("Traitement des arrêts...");
+    });
+    stopsData.parseStops(stops);
+    stops_data = stopsData.getStops();
+
+    setState(() {});
+
+    removeProgressBar();
+
+    var bannedTransportSubtitle = ["Subway", "Rail", "Tram"];
 
     column.add(
       SizedBox(
         height: 500,
-        child: ListView.builder(
+        child: Scrollbar(child: ListView.builder(
           itemBuilder: (context, index) {
             var lineName = lines_data[index].route_long_name!;
             var transportType = lines_data[index].getTransportTypeName();
-            return ListTile(
-              title: Text("$transportType $lineName"),
-              //subtitle: Text(tripHeadSign),
-              leading: lines_data[index].getLineIcon(1.0),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                selectedLine = lines_data[index];
-                selectedTrip = trips_data.where((element) => element.route_id == selectedLine.route_id).toList();
-                navigatorKey.currentState!.push(
-                  MaterialPageRoute(builder: (context) => PageStations(progressText: progressText)),
-                );
-                /*SnackBar snackBar = SnackBar(
-                  content: Text(lines[index].route_id!),
-                  duration: const Duration(seconds: 1),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);*/
-              },
-            );
+            var traceName = "";
+            for (var trace in traces_data) {
+              if (trace.route_id == lines_data[index].route_id) {
+                if (trace.networkname != null && !bannedTransportSubtitle.contains(trace.route_type!)) {
+                  traceName = trace.networkname!;
+                } 
+              }
+            }
+
+            var listTile;
+
+            if (traceName == "") {
+              listTile = ListTile(
+                title: Text("$transportType $lineName"),
+                leading: lines_data[index].getLineIcon(1.0),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  selectedLine = lines_data[index];
+                  selectedTrip = trips_data.where((element) => element.route_id == selectedLine.route_id).toList();
+                  selectedTrace = traces_data.where((element) => element.route_id == selectedLine.route_id).first;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => PageStations(progressText: progressText)),
+                  );
+                },
+              );
+            } else {
+              listTile = ListTile(
+                title: Text("$transportType $lineName"),
+                subtitle: Text(
+                  traceName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontStyle: FontStyle.italic
+                  ),
+                ),
+                leading: lines_data[index].getLineIcon(1.0),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  selectedLine = lines_data[index];
+                  selectedTrip = trips_data.where((element) => element.route_id == selectedLine.route_id).toList();
+                  selectedTrace = traces_data.where((element) => element.route_id == selectedLine.route_id).first;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PageStations(progressText: progressText)),
+                  );
+                },
+              );
+            }
+
+            return listTile;
           },
           itemCount: lines_data.length,
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
-        )
+        ))
       )
     );
     /*column.add(
@@ -152,23 +222,6 @@ class MyAppState extends State<MyApp> {
       ),
     );*/
     setState(() {});
-
-    await _api.getStops(this).then((value) {
-      setState(() {
-        stops = value;
-      });
-    });
-    await _api.getStopTimes(this).then((value) {
-      setState(() {
-        stop_times = value;
-      });
-    });
-
-    removeProgressBar();
-    
-    // Navigate until that the main page is reached
-    if (!context.mounted) return;
-    navigatorKey.currentState!.popUntil((route) => route.isFirst);
   }
 
   void setProgressText(String text) {

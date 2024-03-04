@@ -1,8 +1,10 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'dart:isolate';
+import 'traces.dart';
 import 'package:csv/csv.dart';
 import 'package:movile/main.dart';
+import 'package:http/http.dart' as http;
 
 class API {
   const API();
@@ -52,46 +54,40 @@ class API {
     }
   }
 
-  Future<List<List<dynamic>>> getStopTimes(MyAppState myapp) async {
+  Future<List<dynamic>> getTraces(MyAppState myapp) async {
     try {
-      myapp.setProgressText("Chargement des missions (1/5)...");
-      var byteData1 = await rootBundle.load('assets/data/stop_times_1.csv');
-      List<int> bytes1 = byteData1.buffer.asUint8List(byteData1.offsetInBytes, byteData1.lengthInBytes);
-      List<List<dynamic>> data_stoptime1 = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes1)));
-      print("Data Stop Time 1 : ${data_stoptime1.length}");
+      myapp.setProgressText("Chargement des traces...");
+      var string = await rootBundle.loadString('assets/data/traces-des-lignes-de-transport-en-commun-idfm.json');
+      List<dynamic> data_traces = await Isolate.run(() => jsonDecode(string) as List<dynamic>);
+      print("Data Traces : ${data_traces.length}");
 
-      myapp.setProgressText("Chargement des missions (2/5)...");
-      var byteData2 = await rootBundle.load('assets/data/stop_times_2.csv');
-      List<int> bytes2 = byteData2.buffer.asUint8List(byteData2.offsetInBytes, byteData2.lengthInBytes);
-      List<List<dynamic>> data_stoptime2 = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes2)));
-      print("Data Stop Time 2 : ${data_stoptime2.length}");
+      return data_traces;
+    } catch (e) {
+      print("Error : $e");
+      return [];
+    }
+  }
 
-      myapp.setProgressText("Chargement des missions (3/5)...");
-      var byteData3 = await rootBundle.load('assets/data/stop_times_3.csv');
-      List<int> bytes3 = byteData3.buffer.asUint8List(byteData3.offsetInBytes, byteData3.lengthInBytes);
-      List<List<dynamic>> data_stoptime3 = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes3)));
-      print("Data Stop Time 3 : ${data_stoptime3.length}");
+  Future<List<dynamic>> getStopTimes() async {
+    try {
+      String trips = "";
+      for (var trip in MyAppState.selectedTrip) {
+        trips += "${trip.trip_id},";
+      }
+      trips = trips.substring(0, trips.length - 1);
 
-      myapp.setProgressText("Chargement des missions (4/5)...");
-      var byteData4 = await rootBundle.load('assets/data/stop_times_4.csv');
-      List<int> bytes4 = byteData4.buffer.asUint8List(byteData4.offsetInBytes, byteData4.lengthInBytes);
-      List<List<dynamic>> data_stoptime4 = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes4)));
-      print("Data Stop Time 4 : ${data_stoptime4.length}");
+      var url = Uri.https("clarifygdps.com", "/idfm_api/getStopTimes.php");
+      var response = await http.post(url, body: {"trip_id": trips});
+      if (response.statusCode != 200) {
+        return [];
+      }
 
-      myapp.setProgressText("Chargement des missions (5/5)...");
-      var byteData5 = await rootBundle.load('assets/data/stop_times_5.csv');
-      List<int> bytes5 = byteData5.buffer.asUint8List(byteData5.offsetInBytes, byteData5.lengthInBytes);
-      List<List<dynamic>> data_stoptime5 = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes5)));
-      print("Data Stop Time 5 : ${data_stoptime5.length}");
+      var byteData = response.body;
+      List<dynamic> data_stoptime = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(byteData));
+      data_stoptime.removeAt(0);
+      print("Data StopTimes : ${data_stoptime.length}");
 
-      List<List<dynamic>> data = [];
-      data.addAll(data_stoptime1);
-      data.addAll(data_stoptime2);
-      data.addAll(data_stoptime3);
-      data.addAll(data_stoptime4);
-      data.addAll(data_stoptime5);
-
-      return data;
+      return data_stoptime;
     } catch (e) {
       print("Error : $e");
       return [];

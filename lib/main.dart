@@ -9,13 +9,12 @@ import 'IDFMData/api.dart';
 import 'pageStation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
-// import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const MyApp());
   SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.portraitUp,
   ]);
 }
 
@@ -28,6 +27,8 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> {
   final navigatorKey = GlobalKey<NavigatorState>();
+
+  static bool canPop = true;
 
   static var lines = [];
   static var trips = [];

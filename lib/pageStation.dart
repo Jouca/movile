@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'IDFMData/stops.dart';
@@ -17,17 +18,18 @@ class PageStations extends StatefulWidget {
   var progressText;
 
   @override
-  State<PageStations> createState() => _PageStationsState();
+  State<PageStations> createState() => PageStationsState();
 }
 
-class _PageStationsState extends State<PageStations> {
+class PageStationsState extends State<PageStations> {
   var stop_times = MyAppState.stop_times_data;
   var lines = MyAppState.lines;
   var trips = MyAppState.trips;
   List<Stop> stops = [];
   List<Marker> markers = [];
 
-  static Map<Stop, List<String>> stopSelected = {};
+  static List<Map<Stop, List<Map<String, String>>>> stopSelected = [];
+  static List<Map<Stop, List<Map<String, String>>>> stopsSelected = [];
 
   @override
   void dispose() {
@@ -36,7 +38,8 @@ class _PageStationsState extends State<PageStations> {
     MyAppState.selectedTrace = Trace();
     MyAppState.selectedStopTimes = [];
     MyAppState.selectedStops = [];
-    _PageStationsState.stopSelected = {};
+    PageStationsState.stopSelected = [];
+    PageStationsState.stopsSelected = [];
     stops = [];
     markers = [];
 
@@ -58,10 +61,11 @@ class _PageStationsState extends State<PageStations> {
     await MyAppState.api.getStopTimes().then((value) {
       setState(() {
         stop_times = value;
+
+        widget.progressText = "Traitement des missions...";
+        MyAppState.stopTimesData.parseStopTimes(stop_times);
+        MyAppState.selectedStopTimes = MyAppState.stopTimesData.getStopTimes();
       });
-      widget.progressText = "Traitement des missions...";
-      MyAppState.stopTimesData.parseStopTimes(stop_times);
-      MyAppState.selectedStopTimes = MyAppState.stopTimesData.getStopTimes();
     });
   }
 
@@ -99,7 +103,7 @@ class _PageStationsState extends State<PageStations> {
       children: [
         TileLayer(
           urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-          userAgentPackageName: "com.example.movile",
+          userAgentPackageName: "com.jouca.movile",
         ),
         const RichAttributionWidget(
           attributions: [
@@ -144,6 +148,8 @@ class _PageStationsState extends State<PageStations> {
         for (var stop in stopTime.keys) {
           if (!stopIDs.contains(stopTime[stop]!.first.stop_id!)) {
             stopIDs.add(stopTime[stop]!.first.stop_id!);
+          }
+          if (!stopTrips.contains(stopTime[stop]!.first.trip_id!)) {
             stopTrips.add(stopTime[stop]!.first.trip_id!);
           }
         }
@@ -160,19 +166,22 @@ class _PageStationsState extends State<PageStations> {
       // sort stops by stop_name
       stops.sort((a, b) => a.stop_name!.compareTo(b.stop_name!));
 
-      List<Map<Stop, List<String>>> stopWithIDs = [];
+      List<Map<Stop, List<Map<String, String>>>> stopWithIDs = [];
       for (var stop in stops) {
-        List<String> stopIDsTemp = [];
+        List<Map<String, String>> stopIDsTemp = [];
         for (var stopTrip in stopTrips) {
           if (MyAppState.selectedTrip.any((element) => element.trip_id == stopTrip)) {
-            stopIDsTemp.add(stopTrip);
+            stopIDsTemp.add({stopTrip: MyAppState.selectedTrip.firstWhere((element) => element.trip_id == stopTrip).direction_id!});
           }
         }
         stopWithIDs.add({stop: stopIDsTemp});
       }
 
+      // List with repeated stops
+      List<Map<Stop, List<Map<String, String>>>> repeatedStopWithIDs = List<Map<Stop, List<Map<String, String>>>>.from(stopWithIDs);
+
       // Remove repeated stops
-      var stopWithIDsTemp = List<Map<Stop, List<String>>>.from(stopWithIDs);
+      var stopWithIDsTemp = List<Map<Stop, List<Map<String, String>>>>.from(stopWithIDs);
       for (var stop in stopWithIDsTemp) {
         // count if stop_name is repeated
         if (stopWithIDs.where((element) => element.keys.first.stop_name == stop.keys.first.stop_name).length > 1) {
@@ -196,7 +205,8 @@ class _PageStationsState extends State<PageStations> {
                 trailing: const Icon(Icons.arrow_forward_ios),
                 leading: RotatedBox(quarterTurns: 1, child: Icon(Icons.commit, color: MyAppState.selectedLine.route_color!.toColor(), size: 40)),
                 onTap: () {
-                  _PageStationsState.stopSelected = stopWithIDs[index];
+                  PageStationsState.stopSelected = stopWithIDs.where((element) => element.keys.first.stop_name == stopWithIDs[index].keys.first.stop_name).toList();
+                  PageStationsState.stopsSelected = repeatedStopWithIDs.where((element) => element.keys.first.stop_name == stopWithIDs[index].keys.first.stop_name).toList();
                   Navigator.of(context).push(
                     MaterialPageRoute(builder: (context) => PageSelectTrip())
                   );
@@ -229,7 +239,7 @@ class _PageStationsState extends State<PageStations> {
     }
 
     return PopScope(
-      canPop: false,
+      canPop: MyAppState.canPop,
       child: MaterialApp(
         title: 'Movile',
         home: Scaffold(
@@ -265,7 +275,29 @@ class _PageStationsState extends State<PageStations> {
             children: column,
           )
         )
-      )
+      ),
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          PageSelectTripState.stop_times_accurate = [];
+          PageSelectTripState.stationTimes = {};
+          PageSelectTripState.stationTimesSelected = [];
+          PageSelectTripState.stationNameSelected = "";
+
+          PageStationsState.stopSelected = [];
+          PageStationsState.stopsSelected = [];
+
+          MyAppState.selectedLine = Line();
+          MyAppState.selectedTrip = [];
+          MyAppState.selectedTrace = Trace();
+          MyAppState.selectedStopTimes = [];
+          MyAppState.selectedStops = [];
+
+          SystemChrome.setPreferredOrientations([
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.portraitUp,
+          ]);
+        }
+      },
     );
   }
 }

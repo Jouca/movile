@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
 import 'dart:isolate';
+import 'dart:io';
 import 'traces.dart';
 import 'package:csv/csv.dart';
 import 'package:movile/main.dart';
@@ -12,6 +13,7 @@ class API {
   Future<List<List<dynamic>>> getLines(MyAppState myapp) async {
     try {
       myapp.setProgressText("Chargement des lignes...");
+
       var byteData1 = await rootBundle.load('assets/data/routes.csv');
       List<int> bytes1 = byteData1.buffer.asUint8List(byteData1.offsetInBytes, byteData1.lengthInBytes);
       List<List<dynamic>> data_lines = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes1)));
@@ -42,9 +44,16 @@ class API {
   Future<List<List<dynamic>>> getRoutes(MyAppState myapp) async {
     try {
       myapp.setProgressText("Chargement des routes...");
-      var byteData1 = await rootBundle.load('assets/data/trips.csv');
-      List<int> bytes1 = byteData1.buffer.asUint8List(byteData1.offsetInBytes, byteData1.lengthInBytes);
-      List<List<dynamic>> data_routes = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(bytes1)));
+
+      var url = Uri.https("clarifygdps.com", "/idfm_api/getTrips.php");
+      var response = await http.post(url);
+      if (response.statusCode != 200) {
+        return [];
+      }
+      var byteData = GZipCodec().decode(response.bodyBytes);
+
+      //List<int> bytes1 = byteData1.buffer.asUint8List(byteData1.offsetInBytes, byteData1.lengthInBytes);
+      List<List<dynamic>> data_routes = await Isolate.run(() => const CsvToListConverter(shouldParseNumbers: false, convertEmptyTo: EmptyValue.NULL, eol: "\n").convert(utf8.decode(byteData)));
       print("Data Routes : ${data_routes.length}");
 
       return data_routes;

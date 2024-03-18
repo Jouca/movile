@@ -44,10 +44,14 @@ dependencies:
   google_polyline_algorithm: ^3.1.0
   latlong2: ^0.9.0
   marquee: ^2.2.3
+  flutter_launcher_icons: ^0.13.1
+  flutter_tts: ^3.8.5
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -56,6 +60,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
   json_serializable: ^6.7.1
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -74,7 +83,6 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/data/stops.csv
-    - assets/data/trips.csv
     - assets/data/routes.csv
     - assets/data/traces-des-lignes-de-transport-en-commun-idfm.json
     - assets/images/transport_modes/symbole_bus_fc_RVB.png
@@ -82,6 +90,10 @@ flutter:
     - assets/images/transport_modes/symbole_RER_fc_RVB.png
     - assets/images/transport_modes/symbole_train_fc_RVB.png
     - assets/images/transport_modes/symbole_tram_fc_RVB.png
+
+    # Assets
+    - assets/images/tiles/metro_station_check.png
+    - assets/images/tiles/metro_station.png
 
     # Trams
     - assets/images/lines/tram_T1_fc_RVB.png

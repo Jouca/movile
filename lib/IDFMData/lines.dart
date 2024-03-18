@@ -28,13 +28,13 @@ class Lines {
       }
     }
 
-    // Order line based on route_type on that order (1, 2, 0, 4) and route_short_name and also of the length of route_short_name
+    // Order line based on route_type on that order (1, 2, 0, 4) and route_short_name and also of the length of route_long_name
     lines.sort((a, b) {
       if (a.route_type == b.route_type) {
-        if (a.route_short_name!.length == b.route_short_name!.length) {
-          return a.route_short_name!.compareTo(b.route_short_name!);
+        if (a.route_long_name!.length == b.route_long_name!.length) {
+          return a.route_long_name!.compareTo(b.route_long_name!);
         }
-        return a.route_short_name!.length.compareTo(b.route_short_name!.length);
+        return a.route_long_name!.length.compareTo(b.route_long_name!.length);
       }
       return a.route_type!.compareTo(b.route_type!);
     });
@@ -275,7 +275,6 @@ class Line {
           childrenLogo.add(getBusIcon(scale));
         }
         return Container(
-          padding: const EdgeInsets.all(5),
           child: SizedBox(
             width: 110 * scale,
             height: 30 * scale,
